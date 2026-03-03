@@ -11,8 +11,11 @@ export function Sidebar({ role }: { role?: string }) {
         { name: "Dashboard", href: "/", icon: LayoutDashboard },
         { name: "Products", href: "/inventory/products", icon: Package },
         { name: "Locations", href: "/inventory/locations", icon: MapPin },
-        { name: "Settings", href: "/settings", icon: Settings },
     ];
+
+    if (role === 'superadmin') {
+        navigation.push({ name: "Settings", href: "/settings", icon: Settings });
+    }
 
     return (
         <div className="flex flex-col w-64 bg-white border-r border-border-light h-full">

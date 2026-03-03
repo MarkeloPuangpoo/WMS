@@ -1,10 +1,38 @@
-import { Package, AlertCircle, BarChart3 } from "lucide-react";
+import { Package, AlertCircle, BarChart3, AlertTriangle } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+
+  // Fetch all products to calculate metrics
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, sku, name, quantity, min_stock_level")
+    .order("quantity", { ascending: true }); // Order by lowest quantity first
+
+  const totalSKUs = products?.length || 0;
+
+  let totalQuantity = 0;
+  let lowStockCount = 0;
+  const lowStockItems = [];
+
+  if (products) {
+    for (const product of products) {
+      totalQuantity += product.quantity;
+      if (product.quantity <= product.min_stock_level) {
+        lowStockCount++;
+        // Limit the low stock display table to top 10 worst offenders
+        if (lowStockItems.length < 10) {
+          lowStockItems.push(product);
+        }
+      }
+    }
+  }
+
   const stats = [
-    { name: "Total Products (SKUs)", value: "1,240", icon: Package, color: "text-primary-600", bg: "bg-primary-50" },
-    { name: "Low Stock Alerts", value: "12", icon: AlertCircle, color: "text-red-600", bg: "bg-red-50" },
-    { name: "Total Quantity", value: "45,000", icon: BarChart3, color: "text-green-600", bg: "bg-green-50" },
+    { name: "Total Products (SKUs)", value: totalSKUs.toLocaleString(), icon: Package, color: "text-primary-600", bg: "bg-primary-50" },
+    { name: "Low Stock Alerts", value: lowStockCount.toLocaleString(), icon: AlertCircle, color: "text-red-600", bg: "bg-red-50" },
+    { name: "Total Quantity", value: totalQuantity.toLocaleString(), icon: BarChart3, color: "text-green-600", bg: "bg-green-50" },
   ];
 
   return (
@@ -42,13 +70,51 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Recent Activity / Low Stock Table Placeholder */}
+      {/* Low Stock Table */}
       <div className="mt-8">
-        <h2 className="text-lg font-medium text-foreground mb-4">Low Stock Items</h2>
+        <h2 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-amber-500" />
+          Critical Low Stock Items
+        </h2>
         <div className="bg-white rounded-xl shadow-sm ring-1 ring-border-light overflow-hidden">
-          <div className="p-6 text-center text-gray-500 text-sm">
-            Supabase integration pending...
-          </div>
+          {lowStockItems.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-border-light">
+                <thead className="bg-surface">
+                  <tr>
+                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground sm:pl-6">SKU</th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-foreground">Product Name</th>
+                    <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-foreground">Current Stock</th>
+                    <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-foreground">Min Level</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-light bg-white">
+                  {lowStockItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-red-50/50 transition-colors">
+                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-foreground sm:pl-6">
+                        {item.sku}
+                      </td>
+                      <td className="px-3 py-4 text-sm text-gray-500">{item.name}</td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-right font-bold text-red-600">
+                        {item.quantity}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500">
+                        {item.min_stock_level}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                <Package className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="text-sm font-medium text-gray-900">All Stock OK</h3>
+              <p className="mt-1 text-sm text-gray-500">No products are currently under their minimum stock level.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

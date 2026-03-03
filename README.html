@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>colamarc WMS &lpar;Warehouse Management System&rpar;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="colamarc-wms-warehouse-management-system">colamarc WMS (Warehouse Management System)</h1>
+<p>A modern, high-performance web application for warehouse management, built with Next.js 16, Tailwind CSS v4, and Supabase. The project features a premium White &amp; Blue UI aesthetic with clean layouts tailored for efficient data entry.</p>
+<h2 id="-phase-1-master-data--rbac-currently-in-progress">🚀 Phase 1: Master Data &amp; RBAC (Currently in Progress)</h2>
+<h3 id="-whats-done-so-far">✅ What's Done So Far</h3>
+<ol>
+<li>
+<p><strong>Core Layout &amp; UI Foundation</strong></p>
+<ul>
+<li>Configured Next.js 16 App Router with Turbopack.</li>
+<li>Set up Tailwind CSS v4 with a custom White &amp; Blue styling (<code>globals.css</code>).</li>
+<li>Implemented dynamic Sidebar and Header navigation components using <code>lucide-react</code> icons.</li>
+</ul>
+</li>
+<li>
+<p><strong>Supabase Integration &amp; RBAC Structure</strong></p>
+<ul>
+<li>Integrated <code>@supabase/ssr</code> to handle Next.js App Router authentication.</li>
+<li>Created database roles: <code>superadmin</code>, <code>sup</code>, and <code>user</code>.</li>
+<li>Setup <code>middleware</code> (<code>proxy.ts</code>) for Route Protection so unauthenticated users are forced to Login.</li>
+<li>Developed the <strong>Login Page</strong> UI using Server Actions to authenticate credentials against Supabase.</li>
+<li>Built the SQL file (<code>supabase/setup.sql</code>) to provision the DB schema, RLS policies, User Roles Trigger, and mocked seed data.</li>
+<li>Modified the layout to fetch the current user's profile and display their <code>full_name</code> and <code>email</code> dynamically in the Header. Includes a working <strong>Sign Out</strong> button.</li>
+</ul>
+</li>
+<li>
+<p><strong>Master Data Skeleton UI</strong></p>
+<ul>
+<li>Built the <code>/inventory/products</code> Data Table with basic Search and a &quot;Low Stock&quot; toggle filter.</li>
+<li>Built the <code>/inventory/locations</code> Data Table layout.</li>
+</ul>
+</li>
+</ol>
+<h3 id="-whats-next-to-do-list">🚧 What's Next (To-Do List)</h3>
+<ol>
+<li>
+<p><strong>Master Data CRUD Operations</strong></p>
+<ul>
+<li>Connect the Products and Locations data tables directly to the Supabase Database to read real data instead of React State mocks.</li>
+<li>Build <strong>Modals / Forms</strong> for Add, Edit, and Delete actions for both Locations and Products.</li>
+<li>Add notification/toast system on successful saves.</li>
+</ul>
+</li>
+<li>
+<p><strong>Dashboard Real-time Metrics</strong></p>
+<ul>
+<li>Update the <code>&lt;Dashboard /&gt;</code> (<code>src/app/(dashboard)/page.tsx</code>) to query and summarize metrics directly from Supabase.</li>
+<li>E.g., Calculate &quot;Total Quantity of all items&quot; or &quot;Count of SKUs under min_stock_level&quot;.</li>
+<li>(Optional Extra) Setup Supabase Real-time to push live updates when stock changes.</li>
+</ul>
+</li>
+<li>
+<p><strong>RBAC UI Enhancements</strong></p>
+<ul>
+<li>Implement authorization checks within components (e.g., Hide the &quot;Settings&quot; sidebar item or &quot;Delete&quot; buttons if the current user is not a <code>superadmin</code>).</li>
+</ul>
+</li>
+</ol>
+<h2 id="-getting-started">🛠 Getting Started</h2>
+<ol>
+<li>Set up your local <code>.env.local</code> referring to <code>.env.example</code>.</li>
+<li>Ensure you have run the schema in <code>supabase/setup.sql</code> on your Supabase dashboard.</li>
+<li>Install dependencies: <code>npm install</code></li>
+<li>Run the development server: <code>npm run dev</code></li>
+<li>Visit <code>http://localhost:3000</code> and login using one of the seed accounts (e.g., <code>admin@colamarc.com</code> / <code>password123</code>).</li>
+</ol>
+
+            
+            
+        </body>
+        </html>

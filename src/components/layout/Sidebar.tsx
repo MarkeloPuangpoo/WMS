@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Package, MapPin, LayoutDashboard, Settings } from "lucide-react";
+import { Package, MapPin, LayoutDashboard, Settings, Activity } from "lucide-react";
 
 export function Sidebar({ role }: { role?: string }) {
     const pathname = usePathname();
@@ -11,6 +11,7 @@ export function Sidebar({ role }: { role?: string }) {
         { name: "Dashboard", href: "/", icon: LayoutDashboard },
         { name: "Products", href: "/inventory/products", icon: Package },
         { name: "Locations", href: "/inventory/locations", icon: MapPin },
+        { name: "Transactions", href: "/inventory/transactions", icon: Activity },
     ];
 
     if (role === 'superadmin') {

@@ -57,6 +57,54 @@ CREATE TABLE public.products (
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 -- ==========================================
+-- 6. Create Transaction Type Enum
+-- ==========================================
+CREATE TYPE public.transaction_type AS ENUM ('INBOUND', 'OUTBOUND', 'TRANSFER', 'ADJUSTMENT');
+-- ==========================================
+-- 7. Create Inventory Transactions Table
+-- ==========================================
+CREATE TABLE public.inventory_transactions (
+    id uuid default gen_random_uuid() primary key,
+    transaction_type public.transaction_type not null,
+    product_id uuid references public.products(id) not null,
+    location_id uuid references public.locations(id) not null,
+    quantity integer not null,
+    reference_doc text,
+    notes text,
+    created_by uuid references public.user_profiles(id) not null,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+-- Turn on RLS for Security
+ALTER TABLE public.inventory_transactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow authenticated read access" ON public.inventory_transactions FOR
+SELECT TO authenticated USING (true);
+CREATE POLICY "Allow supervisors and admins to insert" ON public.inventory_transactions FOR
+INSERT TO authenticated WITH CHECK (
+        EXISTS (
+            SELECT 1
+            FROM public.user_profiles
+            WHERE user_profiles.id = auth.uid()
+                AND user_profiles.role IN ('superadmin', 'sup')
+        )
+    );
+-- Performance Indexes
+CREATE INDEX idx_inventory_transactions_product_id ON public.inventory_transactions(product_id);
+CREATE INDEX idx_inventory_transactions_created_at ON public.inventory_transactions(created_at DESC);
+CREATE INDEX idx_inventory_transactions_type ON public.inventory_transactions(transaction_type);
+-- ==========================================
+-- 8. Trigger: Auto-update Product Quantity
+-- ==========================================
+CREATE OR REPLACE FUNCTION public.update_product_quantity() RETURNS trigger AS $$ BEGIN
+UPDATE public.products
+SET quantity = quantity + NEW.quantity
+WHERE id = NEW.product_id;
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+CREATE TRIGGER on_inventory_transaction_created
+AFTER
+INSERT ON public.inventory_transactions FOR EACH ROW EXECUTE PROCEDURE public.update_product_quantity();
+-- ==========================================
 -- ==========================================
 -- SEED DATA BELOW
 -- ==========================================

@@ -1,8 +1,5 @@
-
-
-import { Sidebar } from "./Sidebar";
-import { Header } from "./Header";
 import { createClient } from "@/lib/supabase/server";
+import ClientLayoutWrapper from "./ClientLayoutWrapper";
 
 export default async function MainLayout({
     children,
@@ -23,16 +20,8 @@ export default async function MainLayout({
     }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-surface">
-            <Sidebar role={profile?.role} />
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <Header profile={profile} />
-                <main className="flex-1 overflow-y-auto p-6">
-                    <div className="max-w-7xl mx-auto">
-                        {children}
-                    </div>
-                </main>
-            </div>
-        </div>
+        <ClientLayoutWrapper profile={profile}>
+            {children}
+        </ClientLayoutWrapper>
     );
 }

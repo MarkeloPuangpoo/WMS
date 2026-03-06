@@ -1,54 +1,87 @@
-# colamarc WMS (Warehouse Management System)
+# Colamarc WMS (Warehouse Management System)
 
-A modern, high-performance web application for warehouse management, built with Next.js 16, Tailwind CSS v4, and Supabase. The project features a premium White & Blue UI aesthetic with clean layouts tailored for efficient data entry.
+A modern, high-performance web application for warehouse management, built with **Next.js 16**, **Tailwind CSS v4**, and **Supabase**. The project features a premium White & Blue UI aesthetic with clean layouts tailored for efficient operational data entry.
 
-## 🚀 Phase 1: Master Data & RBAC (Currently in Progress)
+---
 
-### ✅ What's Done So Far
-1. **Core Layout & UI Foundation**
-   - Configured Next.js 16 App Router with Turbopack.
-   - Set up Tailwind CSS v4 with a custom White & Blue styling (`globals.css`).
-   - Implemented dynamic Sidebar and Header navigation components using `lucide-react` icons.
+## 🚀 Features & Capabilities
 
-2. **Supabase Integration & RBAC Structure**
-   - Integrated `@supabase/ssr` to handle Next.js App Router authentication.
-   - Created database roles: `superadmin`, `sup`, and `user`.
-   - Setup `middleware` (`proxy.ts`) for Route Protection so unauthenticated users are forced to Login.
-   - Developed the **Login Page** UI using Server Actions to authenticate credentials against Supabase.
-   - Built the SQL file (`supabase/setup.sql`) to provision the DB schema, RLS policies, User Roles Trigger, and mocked seed data.
-   - Modified the layout to fetch the current user's profile and display their `full_name` and `email` dynamically in the Header. Includes a working **Sign Out** button.
+The WMS has been built through multiple phases to support advanced warehouse operations:
 
-3. **Master Data Skeleton UI**
-   - Built the `/inventory/products` Data Table with basic Search and a "Low Stock" toggle filter.
-   - Built the `/inventory/locations` Data Table layout.
+### 1. Dashboard & Real-Time Metrics
+- Live summary of Total Products, critical Low Stock alerts, and Total Quantity in the warehouse.
+- Recent activity feed showing inbound and outbound operations at a glance.
 
-### 🚧 What's Next (To-Do List)
+### 2. Master Data Management
+- **Products**: Full CRUD with SKU tracking, categorization, and Minimum Stock Levels.
+- **Locations**: Management of Zones, Aisles, Racks, Levels, and Bin Codes (e.g., `A-01-01`).
+- Direct integration with Supabase for real-time reads and writes.
 
-1. **Master Data CRUD Operations**
-   - Connect the Products and Locations data tables directly to the Supabase Database to read real data instead of React State mocks.
-   - Build **Modals / Forms** for Add, Edit, and Delete actions for both Locations and Products.
-   - Add notification/toast system on successful saves.
+### 3. Advanced Inventory Tracking (Lots & Expiry)
+- **Lot Management**: Track items by `mfg_date`, `exp_date`, and `lot_number`.
+- **FEFO Picking** (First Expire, First Out): Smart picking system that recommends staff to pick from the oldest/closest-to-expiry lots first.
+- **Lot Dashboard**: Dedicated `/inventory/lots` UI with color-coded badges for *OK*, *Expiring Soon (≤30 Days)*, and *Expired* items.
 
-2. **Dashboard Real-time Metrics**
-   - Update the `<Dashboard />` (`src/app/(dashboard)/page.tsx`) to query and summarize metrics directly from Supabase.
-   - E.g., Calculate "Total Quantity of all items" or "Count of SKUs under min_stock_level".
-   - (Optional Extra) Setup Supabase Real-time to push live updates when stock changes.
+### 4. Smart Mobile Picking Flow
+- **Barcode & QR Scanning**: Integrated `react-qr-reader` / `html5-qrcode` to allow warehouse staff to use mobile devices or tablets to scan Bin Location QR codes and Product Barcodes.
+- Step-by-step verification ensures 100% picking accuracy.
 
-3. **RBAC UI Enhancements**
-   - Implement authorization checks within components (e.g., Hide the "Settings" sidebar item or "Delete" buttons if the current user is not a `superadmin`).
+### 5. Multi-Tier Role-Based Access Control (RBAC)
+Robust security system utilizing Supabase Row Level Security (RLS) restricting operations based on 4 distinct app roles:
+- **`superadmin` / `sup`**: Full visibility. Can assign pick lists, run transactions, and approve stock adjustments.
+- **`picker`**: Focused "My Tasks" view to execute assigned open pick lists via barcode flow. View-only access to Lot Inventory.
+- **`packer`**: Focused "My Tasks" view showing only orders ready to be packed and shipped.
+
+### 6. Stock Adjustment Approval Workflow
+- Direct adjustment (shrinking) of stock requires an approval flow.
+- Staff submit a **Pending Request** (specifying location, quantity change, and reason).
+- Managers receive an alert, review the request, and can **Approve** (commits the `ADJUSTMENT` to `inventory_transactions`) or **Reject**.
+
+### 7. Wave & Batch Picking (Phase 11)
+- **Batch Picks:** Managers can aggregate multiple orders containing similar SKUs into a single "Wave".
+- **Route Optimization:** Product locations are queried and automatically sorted alphanumericly (A-01 before B-02) so the picker walks a continuous, non-overlapping path.
+- **Put-to-Wall Sorting:** Packers get a visual dashboard telling them exactly which order bin to drop a scanned item into.
+
+### 8. In-house Fleet Management Mini-TMS (Phase 12)
+- **Fleet Dispatching:** A Dispatcher UI mapping `PACKED` orders to company `vehicles` and `drivers` into active `delivery_trips`.
+- **Internal Waybills:** Automatically generates a fully formatted A6 shipping label specifically structured for thermal label printers, including a dynamic tracking/QR Code.
+- **Progressive Web App (PWA) for Drivers:** A mobile-first UI for drivers to view route manifests and scan waybills with their camera to submit Proof of Delivery (POD).
+
+### 9. Beautiful UI / UX
+- Custom animated **Toast Notification System** replacing all browser `alert()` calls.
+- `lucide-react` iconography used consistently across the application.
+- Intelligent `Sidebar` navigation that dynamically re-renders based on the authenticated user's role.
+
+---
 
 ## 🛠 Getting Started
 
-1. Set up your local `.env.local` referring to `.env.example`.
-2. Ensure you have run the schema in `supabase/setup.sql` on your Supabase dashboard.
-3. Install dependencies: `npm install`
-4. Run the development server: `npm run dev`
-5. Visit `http://localhost:3000` and login using one of the Seed Accounts below:
+### 1. Prerequisites
+- Node.js 18+
+- Active Supabase Project
 
-### 🔑 Seed Users (3 Roles)
-The database has been pre-seeded with 3 user roles for testing purposes. 
-**All accounts use the same password:** `password123`
+### 2. Setup
+1. Clone the repository and run `npm install`.
+2. Set up your local `.env.local` by copying `.env.example` and providing your `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+3. In your Supabase Dashboard SQL Editor, run the master schema script:
+   - `supabase/master_schema_full.sql` (Creates all tables from Phase 1-12, seeds mock data, sets up RBAC, and inserts Demo Accounts)
+4. Start the application: `npm run dev`
 
-- **Super Admin:** `admin@colamarc.com`
-- **Supervisor:** `sup@colamarc.com`
-- **Worker (User):** `user@colamarc.com`
+### 3. Demo Accounts 🔑
+The `phase8_seed_users.sql` script provides 4 testing accounts.
+**All passwords are:** `password123`
+
+| Role        | Email                  | Capabilities                    |
+| ----------- | ---------------------- | ------------------------------- |
+| **Admin**   | `admin@colamarc.com`   | Full System Access              |
+| **Manager** | `manager@colamarc.com` | Reports, Approvals, Assignments |
+| **Picker**  | `picker@colamarc.com`  | Mobile Picking Flow, My Tasks   |
+| **Packer**  | `packer@colamarc.com`  | Shipping Flow, My Tasks         |
+
+---
+
+## 📚 Technical Stack
+- **Framework:** Next.js 16 (App Router, Server Actions)
+- **Styling:** Tailwind CSS v4, Lucide React
+- **Backend/DB:** Supabase (PostgreSQL, Row Level Security, Auth)
+- **Scanning:** `html5-qrcode` & `react-qr-reader`

@@ -6,7 +6,7 @@ import {
     Package, MapPin, LayoutDashboard, Settings, Activity, Box,
     PackagePlus, PackageMinus, Layers, ClipboardList, SlidersHorizontal,
     LucideIcon,
-    X
+    X, Truck
 } from "lucide-react";
 
 type NavItem = {
@@ -81,6 +81,7 @@ function getNavGroups(role?: string): NavGroup[] {
         items: [
             { name: "Inbound", href: "/inventory/inbound", icon: PackagePlus },
             { name: "Outbound", href: "/inventory/outbound", icon: PackageMinus },
+            { name: "Fleet Management", href: "/inventory/fleet", icon: Truck },
             { name: "My Tasks", href: "/my-tasks", icon: ClipboardList },
         ]
     });

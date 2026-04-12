@@ -1,158 +1,222 @@
-import { Package, AlertCircle, BarChart3, AlertTriangle, ArrowRight } from "lucide-react";
+import { Package, AlertCircle, BarChart3, AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
 export default async function Home() {
   const supabase = await createClient();
 
-  // Fetch all products to calculate metrics
   const { data: products } = await supabase
     .from("products")
     .select("id, sku, name, quantity, min_stock_level")
-    .order("quantity", { ascending: true }); // Order by lowest quantity first
+    .order("quantity", { ascending: true });
 
-  const totalSKUs = products?.length || 0;
+  const totalSKUs = products?.length ?? 0;
 
   let totalQuantity = 0;
   let lowStockCount = 0;
-  const lowStockItems = [];
+  const lowStockItems: typeof products = [];
 
-  if (products) {
-    for (const product of products) {
-      totalQuantity += product.quantity;
-      if (product.quantity <= product.min_stock_level) {
-        lowStockCount++;
-        // Limit the low stock display table to top 10 worst offenders
-        if (lowStockItems.length < 10) {
-          lowStockItems.push(product);
-        }
+  for (const product of products ?? []) {
+    totalQuantity += product.quantity;
+    if (product.quantity <= product.min_stock_level) {
+      lowStockCount++;
+      if (lowStockItems.length < 10) {
+        lowStockItems.push(product);
       }
     }
   }
 
+  const allStockHealthy = lowStockCount === 0;
+
+  // A friendly greeting based on the time of day
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
   const stats = [
     {
-      name: "Total Products (SKUs)",
+      name: "Products in stock",
       value: totalSKUs.toLocaleString(),
+      caption: "unique SKUs tracked",
       icon: Package,
-      color: "text-primary-600",
-      bg: "bg-primary-50",
-      borderColor: "border-primary-100"
+      accent: "from-blue-500 to-indigo-500",
+      soft: "bg-blue-50 text-blue-600",
     },
     {
-      name: "Low Stock Alerts",
+      name: "Items need attention",
       value: lowStockCount.toLocaleString(),
+      caption: lowStockCount === 1 ? "item running low" : "items running low",
       icon: AlertCircle,
-      color: "text-red-600",
-      bg: "bg-red-50",
-      borderColor: "border-red-100"
+      accent: "from-rose-500 to-red-500",
+      soft: "bg-rose-50 text-rose-600",
     },
     {
-      name: "Total Quantity",
+      name: "Units on hand",
       value: totalQuantity.toLocaleString(),
+      caption: "total inventory units",
       icon: BarChart3,
-      color: "text-green-600",
-      bg: "bg-green-50",
-      borderColor: "border-green-100"
+      accent: "from-emerald-500 to-teal-500",
+      soft: "bg-emerald-50 text-emerald-600",
     },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard Overview</h1>
-        <p className="mt-1.5 text-sm text-gray-500">
-          Monitor your warehouse inventory, track stock levels, and manage critical alerts in real-time.
+    <div className="space-y-10 animate-in fade-in duration-500">
+
+      {/* Warm header */}
+      <div className="flex flex-col gap-1">
+        <p className="text-sm font-medium text-indigo-500 tracking-wide uppercase">
+          {greeting} 👋
+        </p>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight leading-snug">
+          Here's what's happening in your warehouse
+        </h1>
+        <p className="text-sm text-gray-400 mt-1">
+          Last synced just now · Everything below updates in real-time
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {stats.map((item) => (
+      {/* Stats */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {stats.map((item, i) => (
           <div
             key={item.name}
-            className="group flex items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:border-gray-200"
+            style={{ animationDelay: `${i * 80}ms` }}
+            className="animate-in fade-in slide-in-from-bottom-3 duration-500 group relative flex items-start gap-4 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
           >
-            <div className={`p-4 rounded-xl ${item.bg} ${item.borderColor} border mr-5 transition-transform duration-200 group-hover:scale-105`}>
-              <item.icon className={`h-6 w-6 ${item.color}`} aria-hidden="true" />
+            {/* Subtle gradient stripe on left */}
+            <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl bg-gradient-to-b ${item.accent}`} />
+
+            <div className={`shrink-0 p-2.5 rounded-xl ${item.soft}`}>
+              <item.icon className="h-5 w-5" aria-hidden="true" />
             </div>
+
             <div>
-              <p className="text-sm font-medium text-gray-500 mb-1">
-                {item.name}
-              </p>
-              <h3 className="text-3xl font-bold text-gray-900 tracking-tight">
+              <p className="text-sm text-gray-500">{item.name}</p>
+              <p className="text-3xl font-extrabold text-gray-900 tracking-tight leading-none mt-0.5">
                 {item.value}
-              </h3>
+              </p>
+              <p className="text-xs text-gray-400 mt-1">{item.caption}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Low Stock Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Section Header */}
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-white">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-red-50 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+      {/* Low Stock Section */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+
+        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-rose-50 rounded-xl">
+              <AlertTriangle className="h-5 w-5 text-rose-500" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Critical Low Stock</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Items currently at or below minimum stock level</p>
+              <h2 className="text-base font-semibold text-gray-900">
+                Low Stock · Critical Items
+              </h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {allStockHealthy
+                  ? "Nothing to worry about right now"
+                  : `Showing ${lowStockItems.length} of ${lowStockCount} items below minimum`}
+              </p>
             </div>
           </div>
-          <Link
-            href="/inventory/products"
-            className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1 transition-colors"
-          >
-            View all <ArrowRight className="w-4 h-4" />
-          </Link>
+
+          {!allStockHealthy && (
+            <Link
+              href="/inventory/products"
+              className="group/link inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+            >
+              View all
+              <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
+            </Link>
+          )}
         </div>
 
-        {/* Table Content */}
-        {lowStockItems.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50/50">
-                <tr>
-                  <th scope="col" className="py-4 pl-6 pr-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">SKU</th>
-                  <th scope="col" className="px-3 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Product Name</th>
-                  <th scope="col" className="px-3 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Current Stock</th>
-                  <th scope="col" className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Min Level</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 bg-white">
-                {lowStockItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50/80 transition-colors group">
-                    <td className="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-medium text-gray-900">
-                      {item.sku}
-                    </td>
-                    <td className="px-3 py-4 text-sm text-gray-600 font-medium">
-                      {item.name}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-right">
-                      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
-                        {item.quantity}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-right text-gray-400">
-                      {item.min_stock_level}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {allStockHealthy ? (
+          /* Happy empty state */
+          <div className="px-6 py-16 flex flex-col items-center justify-center text-center">
+            <div className="relative mb-5">
+              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center ring-8 ring-emerald-50">
+                <Sparkles className="h-9 w-9 text-emerald-500" />
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              You're all caught up!
+            </h3>
+            <p className="mt-2 text-sm text-gray-400 max-w-xs leading-relaxed">
+              Every product is sitting comfortably above its minimum level. Nice work keeping things topped up.
+            </p>
+            <Link
+              href="/inventory/products"
+              className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+            >
+              Browse all products <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         ) : (
-          <div className="px-6 py-16 text-center flex flex-col items-center justify-center bg-gray-50/30">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 ring-8 ring-green-50">
-              <Package className="h-8 w-8 text-green-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900">All Stock is Healthy</h3>
-            <p className="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
-              Great job! You currently don't have any products that have fallen below their minimum stock levels.
-            </p>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="bg-gray-50/60">
+                  <th className="py-3 pl-6 pr-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    SKU
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    In Stock
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Minimum
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {lowStockItems.map((item, i) => {
+                  const deficit = item.min_stock_level - item.quantity;
+                  const isVeryLow = item.quantity === 0;
+
+                  return (
+                    <tr
+                      key={item.id}
+                      style={{ animationDelay: `${i * 40}ms` }}
+                      className="animate-in fade-in duration-300 hover:bg-gray-50/70 transition-colors"
+                    >
+                      <td className="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-mono font-medium text-gray-700">
+                        {item.sku}
+                      </td>
+                      <td className="px-3 py-4 text-sm text-gray-800 font-medium">
+                        {item.name}
+                        {isVeryLow && (
+                          <span className="ml-2 text-xs font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md">
+                            Out of stock
+                          </span>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-right">
+                        <span
+                          className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold border
+                            ${isVeryLow
+                              ? "bg-red-100 text-red-700 border-red-200"
+                              : "bg-orange-100 text-orange-700 border-orange-200"
+                            }`}
+                        >
+                          {item.quantity}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-right text-gray-400">
+                        {item.min_stock_level}
+                        <span className="ml-1.5 text-xs text-red-400">
+                          (−{deficit})
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

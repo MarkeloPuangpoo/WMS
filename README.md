@@ -16,6 +16,19 @@ A cutting-edge, high-performance warehouse management system engineered for mode
 
 ---
 
+## ⚠️ Disclaimer: AI Agent Experiment
+
+> **This project was created specifically to test the limits and capabilities of an AI Agent.**
+
+From the experiment of developing an enterprise-level, complex system like a Warehouse Management System (WMS) utilizing an AI Agent, we discovered:
+- **Rapid Development**: The AI significantly reduced the time required to scaffold the project, build UI components, and write boilerplate code.
+- **Handling Complexity**: The AI demonstrated a strong understanding of database integrations (Supabase), Role-Based Access Control (RBAC), and modern frontend stacks (Next.js 16, Tailwind v4).
+- **Current Limitations**: While highly capable, defining domain-specific business logic or orchestrating highly complex workflows still requires careful decision-making and manual review by human developers.
+
+This project serves as a case study demonstrating the immense potential of modern AI as a highly effective *Pair Programmer*.
+
+---
+
 ## ✨ Why Colamarc WMS?
 
 🔥 **Lightning-Fast Operations** - Real-time inventory tracking with sub-second response times  
